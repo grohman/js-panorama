@@ -22,7 +22,9 @@ by danyagrohman@gmail.com
 			controlInitializedEventName: 'controlInitialized',
 			selectedItemChangedEventName: 'selectedItemChanged'
 		};
-
+		if($(el).data('panorama')){
+			return false;
+		}
 		//Extending options:
 		this.opts = $.extend({}, this.defaults, options);
 		this.opts = $.extend(this.opts, {
@@ -462,20 +464,20 @@ by danyagrohman@gmail.com
 
 		init: function() {
 			var _this = this;
-			var controller = _this.$el;
-			if(controller.data('panorama')){
-				return false;
+			if(_this.$el) {
+				_this.$el.attr('data-panorama', true);
+				this.prepare(_this.$el);
+				return true;
 			}
-			controller.attr('data-panorama', true);
-			this.prepare(controller);
-			return true;
+			return false;
 		},
 		prepare: function(controller){
 			/* i'm not sure why this happening, but sometimes there's a 1px lack at bottom of the page */
 			var myHeight = controller.parent().height()+1;
-			controller.height(myHeight);
+
 			var unmargin = this.getItemsContainer().position().top;
 			var itemsHeight = myHeight - unmargin;
+			controller.height(itemsHeight);
 			this.getItemsContainer().height(itemsHeight);
 
 
@@ -523,10 +525,11 @@ by danyagrohman@gmail.com
 		if(this.length) {
 			this.each(function() {
 				var rev = new Panorama(this, options);
-				rev.init();
-				rev.setEvents(this);
-				rev.show();
-				$(this).data('panorama', rev);
+				if(rev.init()){
+					rev.setEvents(this);
+					rev.show();
+					$(this).data('panorama', rev);
+				}
 			});
 		}
 	};
