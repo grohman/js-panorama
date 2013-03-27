@@ -218,10 +218,10 @@ by danyagrohman@gmail.com
 						// protect against failing to get an up or end on this pointerId
 						if (parent.opts.eventsSettings.lastXYById[pointerId]) {
 							delete parent.opts.eventsSettings.lastXYById[pointerId];
-							parent.opts.debug && $('<div>').html('end move').prependTo(parent.opts.debug);
+							parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
 						}
 
-						parent.opts.debug && $('<div>').html('start move at '+pageX+'px').prependTo(parent.opts.debug);
+						parent.opts.debug && $('<div>').html('start at '+pageX+'px').prependTo(parent.opts.debug);
 
 						// init last page positions for this pointer
 						parent.opts.eventsSettings.lastXYById[pointerId] = {
@@ -249,9 +249,12 @@ by danyagrohman@gmail.com
 						parent.opts.eventsSettings.lastXYById[pointerId].x = pageX;
 						parent.opts.eventsSettings.lastXYById[pointerId].y = pageY;
 						newX=pageX-curX;
-						if(Math.abs(newX)>20){
-							parent.opts.debug && $('<div>').html('touch move: '+newX+'px').prependTo(parent.opts.debug);
-							parent.getItemsContainer().css('left', newX+20+'px')
+						var wait=20;
+						if(Math.abs(newX)>wait){
+							if(newX<0) wait=-wait;
+							var move = newX-wait;
+							parent.opts.debug && $('<div>').html('move: '+move+'px').prependTo(parent.opts.debug);
+							parent.getItemsContainer().css('left', move+'px')
 						} else {
 							newX=0;
 						}
@@ -259,7 +262,7 @@ by danyagrohman@gmail.com
 					}
 					else if (parent.opts.eventsSettings.lastXYById[pointerId] && theEvtObj.type.match(/(up|end|cancel)$/i)) {
 						// clause handles up/end/cancel
-						parent.opts.debug && $('<div>').html('end move').prependTo(parent.opts.debug);
+						parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
 
 						// handle swipe while busy==false
 						var interval = setInterval(function(){
