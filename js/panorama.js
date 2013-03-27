@@ -8,7 +8,7 @@ by danyagrohman@gmail.com
 		//Defaults:
 		// nothing mandatory
 		this.defaults = {
-			debug: false, //optional
+			debug: false,
 			animationDuration: 500,
 			animationEasing: 'easeOutExpo',
 			titleSelector: 'h1',
