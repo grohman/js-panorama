@@ -17,7 +17,6 @@ by danyagrohman@gmail.com
 			titleAnimationStep: 15,
 			itemsGapPercentage: 10,
 			itemsLeftMarginPercent: 0,
-			totalNumberOfItems: 0,
 			controlInitializedEventName: 'controlInitialized',
 			selectedItemChangedEventName: 'selectedItemChanged'
 		};
@@ -28,7 +27,7 @@ by danyagrohman@gmail.com
 			currentIndex: 0,
 			busy:false,
 			backgroundAnimationStep: this.opts.backgroundAnimationStep==0 && Math.round(100/$(el).find(this.opts.itemSelector).length),
-			totalNumberOfItems: this.opts.totalNumberOfItems==0 && $(el).find(this.opts.itemSelector).length,
+			totalNumberOfItems: $(el).find(this.opts.itemSelector).length,
 			_item_width: 0,
 			eventsSettings: {
 				useSetReleaseCapture: false,
