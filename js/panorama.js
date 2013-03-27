@@ -44,12 +44,16 @@ by danyagrohman@gmail.com
 				'overflow':'hidden',
 				'width':'200px',
 				'height':'20%',
-				'zIndex':'9999'
+				'zIndex':'9999',
+				'color':'black'
 			}).appendTo('body')
 		})
 
 		if(parseInt(this.opts.backgroundAnimationStep)==0) this.opts.backgroundAnimationStep = Math.round(100/$(el).find(this.opts.itemSelector).length);
 		if(parseInt(this.opts.totalNumberOfItems)==0) this.opts.totalNumberOfItems = $(el).find(this.opts.itemSelector).length;
+
+		//Privates:
+		this.$el = $(el);
 
 		if(this.opts.debug){
 			var hrefContainer = $('<div>').css({
@@ -57,15 +61,14 @@ by danyagrohman@gmail.com
 				'bottom':'0px',
 				'left':'0px',
 				'background':'white',
-				'border':'1px solid red'
+				'border':'1px solid red',
+				'color':'black'
 			}).appendTo('body');
-			$('<h2>').html('<a href="#" onclick="$(\'.ui-panorama\').data(\'obj\').goToNext();">swipe left</a>').appendTo(hrefContainer);
-			$('<h2>').html('<a href="#" onclick="$(\'.ui-panorama\').data(\'obj\').goToPrevious();">swipe right</a>').appendTo(hrefContainer);
-			$('<h2>').html('<a href="#" onclick="$(\'.ui-panorama\').data(\'obj\').goTo(3);">go to screen 3</a>').appendTo(hrefContainer);
-			$('<h2>').html('<a href="#" onclick="alert($(\'.ui-panorama\').data(\'obj\').opts.currentIndex);">get current idx</a>').appendTo(hrefContainer);
+			$('<h2>').html('<a href="#" onclick="$(\'.'+this.$el.attr('class')+'\').data(\'obj\').goToNext();">swipe left</a>').appendTo(hrefContainer);
+			$('<h2>').html('<a href="#" onclick="$(\'.'+this.$el.attr('class')+'\').data(\'obj\').goToPrevious();">swipe right</a>').appendTo(hrefContainer);
+			$('<h2>').html('<a href="#" onclick="$(\'.'+this.$el.attr('class')+'\').data(\'obj\').goTo(3);">go to screen 3</a>').appendTo(hrefContainer);
+			$('<h2>').html('<a href="#" onclick="alert($(\'.'+this.$el.attr('class')+'\').data(\'obj\').opts.currentIndex);">get current idx</a>').appendTo(hrefContainer);
 		}
-		//Privates:
-		this.$el = $(el);
 
 		this.getItemsContainer = function(){
 			return this.$el.children(this.opts.itemsContainerSelector);

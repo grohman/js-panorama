@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>pivot example</title>
+		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
+		<link href="css/styles.css" rel="stylesheet" type="text/css" />
+		<style type="text/css">
+			body {
+				background:black;
+				color:white;
+			}
+			.ui-panorama {
+				background:none;
+			}
+
+			.ui-panorama-item h2 {
+				margin-top:0px;
+				color:gray;
+			}
+			.ui-panorama-item-active h2 {
+				color:white;
+			}
+
+			.todo-item {
+				margin-bottom: 35px;
+				border-bottom: 1px solid #444;
+				font-size:1.5em;
+			}
+			.todo-suffix {
+				color:gray;
+				font-size:0.8em;
+			}
+		</style>
+	</head>
+	<body>
+		<div data-role="page" id="index">
+			<div class="ui-panorama">
+				<h1>Application title</h1>
+				<div class='ui-panorama-items'>
+					<div class="ui-panorama-item ui-panorama-item-active">
+						<h2>Todo</h2>
+						<div class="todo-item">Wake up <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Eat <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">work <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Sleep <div class="todo-suffix">blabla...</div></div>
+					</div>
+					<div class="ui-panorama-item">
+						<h2>Page 1</h2>
+						<div class="todo-item">Sleep <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Sleep <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Sleep <div class="todo-suffix">blabla...</div></div>
+					</div>
+					<div class="ui-panorama-item">
+						<h2>Page 2</h2>
+						<div class="todo-item">Eat <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Sleep <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Sleep <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Sleep <div class="todo-suffix">blabla...</div></div>
+						<div class="todo-item">Eat <div class="todo-suffix">blabla...</div></div>
+					</div>
+					<div class="ui-panorama-item">
+						<h2>Page 3</h2>
+						<div class="todo-item">eat... and then sleep <div class="todo-suffix">blabla...</div></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<script type="text/javascript" src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
+		<script type="text/javascript" src="js/panorama.min.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				$(".ui-panorama").panorama({
+					debug: true,
+					animationDuration: 500,
+					animationEasing: 'easeOutExpo',
+					titleSelector: null,
+					itemsContainerSelector: '.ui-panorama-items',
+					itemSelector: '.ui-panorama-item',
+					backgroundAnimationStep: 0,
+					titleAnimationStep: 0,
+					itemsGapPercentage: 0,
+					itemsLeftMarginPercent: 0,
+					controlInitializedEventName: 'controlInitialized',
+					selectedItemChangedEventName: 'selectedItemChanged'
+				});
+
+				$('.ui-panorama').on('selectedItemChanged', function(){
+					$('.ui-panorama-item-active').removeClass('ui-panorama-item-active')
+					$('.ui-panorama').data('obj').getItem($('.ui-panorama').data('obj').opts.currentIndex).addClass('ui-panorama-item-active');
+				})
+
+
+				$(document).on("keydown", function (e) {
+					// left
+					if (e.which == 39) {
+						$(".ui-panorama").data('obj').goToNext();
+					}
+					// right
+					if (e.which == 37) {
+						$(".ui-panorama").data('obj').goToPrevious();
+					}
+				});
+			})
+		</script>
+	</body>
+</html>
