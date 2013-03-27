@@ -6,18 +6,19 @@ by danyagrohman@gmail.com
 (function($){
 	function Panorama(el, options) {
 		//Defaults:
+		// nothing mandatory
 		this.defaults = {
-			debug: false,
+			debug: false, //optional
 			animationDuration: 500,
 			animationEasing: 'easeOutExpo',
 			titleSelector: 'h1',
 			itemsContainerSelector: '.ui-panorama-items',
 			itemSelector: '.ui-panorama-item',
-			backgroundAnimationStep: 0,
+			backgroundAnimationStep: 0, // for dynamic value not specify this option
 			titleAnimationStep: 15,
 			itemsGapPercentage: 10,
 			itemsLeftMarginPercent: 0,
-			totalNumberOfItems: 0,
+			totalNumberOfItems: 0, // for dynamic value not specify this option
 			controlInitializedEventName: 'controlInitialized',
 			selectedItemChangedEventName: 'selectedItemChanged'
 		};
@@ -461,7 +462,8 @@ by danyagrohman@gmail.com
 			return true;
 		},
 		prepare: function(controller){
-			var myHeight = controller.parent().height();
+			/* i'm not sure why this happening, but sometimes there's a 1px lack at bottom of the page */
+			var myHeight = controller.parent().height()+1;
 			controller.height(myHeight);
 			var unmargin = this.getItemsContainer().position().top;
 			var itemsHeight = myHeight - unmargin;
