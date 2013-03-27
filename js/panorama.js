@@ -17,6 +17,7 @@ by danyagrohman@gmail.com
 			titleAnimationStep: 15,
 			itemsGapPercentage: 10,
 			itemsLeftMarginPercent: 0,
+			totalNumberOfItems: 0,
 			controlInitializedEventName: 'controlInitialized',
 			selectedItemChangedEventName: 'selectedItemChanged'
 		};
@@ -26,8 +27,6 @@ by danyagrohman@gmail.com
 		this.opts = $.extend(this.opts, {
 			currentIndex: 0,
 			busy:false,
-			backgroundAnimationStep: this.opts.backgroundAnimationStep==0 && Math.round(100/$(el).find(this.opts.itemSelector).length),
-			totalNumberOfItems: $(el).find(this.opts.itemSelector).length,
 			_item_width: 0,
 			eventsSettings: {
 				useSetReleaseCapture: false,
@@ -45,6 +44,9 @@ by danyagrohman@gmail.com
 				'zIndex':'9999'
 			}).appendTo('body')
 		})
+
+		if(parseInt(this.opts.backgroundAnimationStep)==0) this.opts.backgroundAnimationStep = Math.round(100/$(el).find(this.opts.itemSelector).length);
+		if(parseInt(this.opts.totalNumberOfItems)==0) this.opts.totalNumberOfItems = $(el).find(this.opts.itemSelector).length;
 
 		if(this.opts.debug){
 			var hrefContainer = $('<div>').css({
