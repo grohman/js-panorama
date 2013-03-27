@@ -78,7 +78,7 @@ by danyagrohman@gmail.com
 			return this.getItem(this.opts.totalNumberOfItems-1);
 		};
 		this.getTitle=function() {
-			return this.$el.children(this.opts.titleSelector).first();
+			return this.$el.children(this.opts.titleSelector);
 		};
 
 		this.fixIndex= function(index) {
@@ -394,16 +394,24 @@ by danyagrohman@gmail.com
 			var leftItem = this.getItem(leftItemIndex);
 			var rightItem = this.totalNumberOfItems > 2 ? this.getItem(rightItemIndex) : undefined;
 
+			var preLeftItemIndex;
+			var preLeftItem;
+
 			if(!rightDirection && leftItem){
 				leftItem.css({
 					left: -this.opts._item_width+this.opts.itemsLeftMarginPercent
 				});
-				var preLeftItemIndex = this.fixIndex(leftItemIndex-1);
-				var preLeftItem = this.getItem(preLeftItemIndex);
-				this.getItems().not(":eq("+this.opts.currentIndex+")").not(":eq("+leftItemIndex+")").not(":eq("+preLeftItemIndex+")").hide();
-				this.getItem(this.fixIndex(leftItemIndex-1)).css({
-					left:	-this.opts._item_width+this.opts.itemsLeftMarginPercent
-				})
+				if( this.totalNumberOfItems > 3) {
+					preLeftItemIndex = this.fixIndex(leftItemIndex-1);
+					preLeftItem = this.getItem(preLeftItemIndex);
+					this.getItems().not(":eq("+this.opts.currentIndex+")").not(":eq("+leftItemIndex+")").not(":eq("+preLeftItemIndex+")").hide();
+					this.getItem(this.fixIndex(leftItemIndex-1)).css({
+						left:	-this.opts._item_width+this.opts.itemsLeftMarginPercent
+					})
+				}
+
+
+
 			}
 			if(rightDirection && rightItem){
 				rightItem.css({
@@ -436,9 +444,10 @@ by danyagrohman@gmail.com
 				'left':'0px'
 			}, this.opts.anumationDuration, this.opts.animationEasing)
 
-			this.getTitle().animate({
+			this.opts.titleSelector && this.getTitle().animate({
 				marginLeft: (-leftItemIndex * this.opts.titleAnimationStep) + "%"
 			}, this.opts.animationDuration, this.opts.animationEasing);
+
 			this.$el.animate({
 				'backgroundPositionX': leftItemIndex * this.opts.backgroundAnimationStep+'%'
 			}, this.opts.animationDuration, this.opts.animationEasing)
