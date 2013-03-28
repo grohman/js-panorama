@@ -195,19 +195,6 @@ by danyagrohman@gmail.com
 					return;
 				}
 
-				// IE10's implementation in the Windows Developer Preview requires doing all of this
-				// Not all of these methods remain in the Windows Consumer Preview, hence the tests for method existence.
-				if (theEvtObj.preventDefault) {
-					theEvtObj.preventDefault();
-				}
-				if (theEvtObj.preventManipulation) {
-					theEvtObj.preventManipulation();
-				}
-
-				if (theEvtObj.preventMouseEvent){
-					theEvtObj.preventMouseEvent();
-				}
-
 				var pointerList = theEvtObj.changedTouches ? theEvtObj.changedTouches : [theEvtObj];
 				for (var i = 0; i < pointerList.length; ++i) {
 					var pointerObj = pointerList[i];
@@ -254,17 +241,19 @@ by danyagrohman@gmail.com
 						}
 					}else if (theEvtObj.type.match(/move$/i)) {
 						// clause handles mousemove, MSPointerMove, and touchmove
-						parent.opts.eventsSettings.lastXYById[pointerId].x = pageX;
-						parent.opts.eventsSettings.lastXYById[pointerId].y = pageY;
-						newX=pageX-curX;
-						var wait=20;
-						if(Math.abs(newX)>wait){
-							if(newX<0) wait=-wait;
-							var move = newX-wait;
-							parent.opts.debug && $('<div>').html('move: '+move+'px').prependTo(parent.opts.debug);
-							parent.getItemsContainer().css('left', move+'px')
-						} else {
-							newX=0;
+						if(parent.opts.eventsSettings.lastXYById[pointerId]!==undefined){
+							parent.opts.eventsSettings.lastXYById[pointerId].x = pageX;
+							parent.opts.eventsSettings.lastXYById[pointerId].y = pageY;
+							newX=pageX-curX;
+							var wait=20;
+							if(Math.abs(newX)>wait){
+								if(newX<0) wait=-wait;
+								var move = newX-wait;
+								parent.opts.debug && $('<div>').html('move: '+move+'px').prependTo(parent.opts.debug);
+								parent.getItemsContainer().css('left', move+'px')
+							} else {
+								newX=0;
+							}
 						}
 
 					}
@@ -294,6 +283,22 @@ by danyagrohman@gmail.com
 						if (target.msReleasePointerCapture)
 							target.msReleasePointerCapture(pointerId);
 						else if (theEvtObj.type == "mouseup" && parent.NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
+
+				// IE10's implementation in the Windows Developer Preview requires doing all of this
+				// Not all of these methods remain in the Windows Consumer Preview, hence the tests for method existence.
+							if(newX>0){
+								if (theEvtObj.preventDefault) {
+									theEvtObj.preventDefault();
+								}
+								if (theEvtObj.preventManipulation) {
+									theEvtObj.preventManipulation();
+								}
+
+								if (theEvtObj.preventMouseEvent){
+									theEvtObj.preventMouseEvent();
+								}
+							}
+
 							if (parent.opts.eventsSettings.useSetReleaseCapture)
 								target.releaseCapture();
 							else {
