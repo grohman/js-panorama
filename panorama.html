@@ -48,7 +48,16 @@
 		<script type="text/javascript" src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
 		<script type="text/javascript" src="js/panorama.min.js"></script>
 		<script type="text/javascript">
+			(function($){
+				$.fn.disableSelection = function() {
+					return this
+					.attr('unselectable', 'on')
+					.css('user-select', 'none')
+					.on('selectstart', false);
+				};
+			})(jQuery);
 			$(function(){
+				$(".ui-panorama").disableSelection();
 				$(".ui-panorama").panorama({
 					debug: true,
 					animationDuration: 500,

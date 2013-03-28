@@ -33,7 +33,8 @@ by danyagrohman@gmail.com
 			_item_width: 0,
 			eventsSettings: {
 				useSetReleaseCapture: false,
-				lastXYById: {}
+				lastXYById: {},
+				yDirection:null
 			},
 			debug: this.opts.debug == true && $('<div>').css({
 				'position':'fixed',
@@ -186,7 +187,7 @@ by danyagrohman@gmail.com
 				parent.opts.debug && $('<div>').html('Unexpected combination of supported features').prependTo(parent.opts.debug);
 				return false;
 			}
-			var curX, newX;
+			var curX, curY, newX, newY;
 			function touchMe(theEvtObj){
 				//	if (parent.opts.busy) {
 				//		return;
@@ -214,6 +215,7 @@ by danyagrohman@gmail.com
 						if (parent.opts.eventsSettings.lastXYById[pointerId]) {
 							delete parent.opts.eventsSettings.lastXYById[pointerId];
 							parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
+							return;
 						}
 
 						parent.opts.debug && $('<div>').html('start at '+pageX+'px').prependTo(parent.opts.debug);
@@ -225,6 +227,7 @@ by danyagrohman@gmail.com
 						};
 
 						curX=pageX;
+						curY=pageY;
 
 						// in the Microsoft pointer model, set the capture for this pointer
 						// in the mouse model, set the capture or add a document-level event handlers if this is our first down point
@@ -244,22 +247,53 @@ by danyagrohman@gmail.com
 						if(parent.opts.eventsSettings.lastXYById[pointerId]!==undefined){
 							parent.opts.eventsSettings.lastXYById[pointerId].x = pageX;
 							parent.opts.eventsSettings.lastXYById[pointerId].y = pageY;
+
 							newX=pageX-curX;
-							var wait=20;
-							if(Math.abs(newX)>wait){
-								if(newX<0) wait=-wait;
-								var move = newX-wait;
+							newY=curY-pageY;
+							var waitX=20;
+							var waitY=10;
+							var move;
+							console.log(newX, newY);
+							if(Math.abs(newY)>waitY){
+								wait=0;
+								if(newY>0 && parent.opts.eventsSettings.yDirection!='up') {
+									newY-=waitY*2;
+									parent.opts.eventsSettings.yDirection='down';
+								} else {
+									parent.opts.eventsSettings.yDirection='up';
+								}
+								if(parent.opts.busy==false){
+									newY+=parent.getItem(parent.opts.currentIndex).scrollTop();
+									curY+=parent.getItem(parent.opts.currentIndex).scrollTop();
+								}
+								parent.opts.busy=true;
+								parent.getItem(parent.opts.currentIndex).scrollTop(newY+wait);
+								parent.opts.debug && $('<div>').html('going '+parent.opts.eventsSettings.yDirection).prependTo(parent.opts.debug);
+								newX=0;
+							} else
+							if(Math.abs(newX)>waitX){
+								if(newX<0) wait=-waitX;
+								move = newX-waitX;
 								parent.opts.debug && $('<div>').html('move: '+move+'px').prependTo(parent.opts.debug);
 								parent.getItemsContainer().css('left', move+'px')
+								newY=0;
 							} else {
 								newX=0;
+								newY=0;
 							}
+
 						}
 
 					}
 					else if (parent.opts.eventsSettings.lastXYById[pointerId] && theEvtObj.type.match(/(up|end|cancel)$/i)) {
 						// clause handles up/end/cancel
 						parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
+						if(newY!=0){
+							parent.opts.eventsSettings.yDirection=null;
+							parent.opts.busy=false;
+							newY=0;
+						}
+
 
 						// handle swipe while busy==false
 						var interval = setInterval(function(){
@@ -385,6 +419,7 @@ by danyagrohman@gmail.com
 			}
 
 			this.opts.busy = true;
+			this.opts.yDirection=null;
 
 			if(this.opts.debug){
 				if(rightDirection){
