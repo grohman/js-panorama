@@ -271,7 +271,7 @@ by danyagrohman@gmail.com
 								newX=0;
 							} else
 							if(Math.abs(newX)>waitX){
-								if(newX<0) wait=-waitX;
+								if(newX<0) waitX-=waitX*2;
 								move = newX-waitX;
 								parent.opts.debug && $('<div>').html('move: '+move+'px').prependTo(parent.opts.debug);
 								parent.getItemsContainer().css('left', move+'px')
