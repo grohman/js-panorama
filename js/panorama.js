@@ -253,7 +253,6 @@ by danyagrohman@gmail.com
 							var waitX=20;
 							var waitY=10;
 							var move;
-							console.log(newX, newY);
 							if(Math.abs(newY)>waitY){
 								wait=0;
 								if(newY>0 && parent.opts.eventsSettings.yDirection!='up') {
