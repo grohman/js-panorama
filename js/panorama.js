@@ -9,6 +9,8 @@ by danyagrohman@gmail.com
 		// nothing mandatory
 		this.defaults = {
 			debug: false,
+			clickedWrapperClass: 'ui-panorama-click-wrapper',
+			clickedElementClass: 'ui-panorama-clicked',
 			animationDuration: 500,
 			animationEasing: 'easeOutExpo',
 			titleSelector: 'h1',
@@ -22,6 +24,7 @@ by danyagrohman@gmail.com
 			controlInitializedEventName: 'controlInitialized',
 			selectedItemChangedEventName: 'selectedItemChanged'
 		};
+
 		if($(el).data('panorama')){
 			return false;
 		}
@@ -34,6 +37,7 @@ by danyagrohman@gmail.com
 			eventsSettings: {
 				useSetReleaseCapture: false,
 				lastXYById: {},
+				moved:0,
 				yDirection:null
 			},
 			debug: this.opts.debug == true && $('<div>').css({
@@ -55,6 +59,17 @@ by danyagrohman@gmail.com
 
 		//Privates:
 		this.$el = $(el);
+
+		$('<div>').addClass(this.opts.clickedWrapperClass).css({
+			'zIndex':999,
+			'opacity':'0',
+			'width':$(window).width(),
+			'height':$(window).height(),
+			'position':'fixed',
+			'left':'0px',
+			'top':'0px',
+			'background':'black'
+		}).prependTo(this.$el);
 
 		if(this.opts.debug){
 			var hrefContainer = $('<div>').css({
@@ -187,14 +202,21 @@ by danyagrohman@gmail.com
 				parent.opts.debug && $('<div>').html('Unexpected combination of supported features').prependTo(parent.opts.debug);
 				return false;
 			}
-			var curX, curY, newX, newY;
+			var curX, newX, curY, newY;
 			function touchMe(theEvtObj){
-				//	if (parent.opts.busy) {
-				//		return;
-				//	}
 				if (theEvtObj.type == "mousemove" && parent.NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
 					return;
 				}
+
+                                if (theEvtObj.preventDefault) {
+                                        theEvtObj.preventDefault();
+                                }
+                                if (theEvtObj.preventManipulation) {
+                                        theEvtObj.preventManipulation();
+                                }
+                                if (theEvtObj.preventMouseEvent){
+                                        theEvtObj.preventMouseEvent();
+                                }
 
 				var pointerList = theEvtObj.changedTouches ? theEvtObj.changedTouches : [theEvtObj];
 				for (var i = 0; i < pointerList.length; ++i) {
@@ -206,6 +228,8 @@ by danyagrohman@gmail.com
 					var pageX = pointerObj.pageX;
 					var pageY = pointerObj.pageY;
 					if (theEvtObj.type.match(/(start|down)$/i)) {
+						parent.opts.eventsSettings.moved=0;
+
 						// clause for processing MSPointerDown, touchstart, and mousedown
 
 						// refresh the document-to-target delta on start in case the target has moved relative to document
@@ -214,7 +238,10 @@ by danyagrohman@gmail.com
 						// protect against failing to get an up or end on this pointerId
 						if (parent.opts.eventsSettings.lastXYById[pointerId]) {
 							delete parent.opts.eventsSettings.lastXYById[pointerId];
-							parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
+							parent.opts.debug && $('<div>').html('force end').prependTo(parent.opts.debug);
+							parent.getItemsContainer().animate({
+								'left':'0px'
+							})
 							return;
 						}
 
@@ -242,19 +269,19 @@ by danyagrohman@gmail.com
 								document.addEventListener("mouseup", touchMe, false);
 							}
 						}
+						$('.'+parent.opts.clickedWrapperClass).hide();
+						$(document.elementFromPoint(pageX, pageY)).addClass(parent.opts.clickedElementClass)
+						$('.'+parent.opts.clickedWrapperClass).show();
 					}else if (theEvtObj.type.match(/move$/i)) {
 						// clause handles mousemove, MSPointerMove, and touchmove
 						if(parent.opts.eventsSettings.lastXYById[pointerId]!==undefined){
 							parent.opts.eventsSettings.lastXYById[pointerId].x = pageX;
 							parent.opts.eventsSettings.lastXYById[pointerId].y = pageY;
-
 							newX=pageX-curX;
 							newY=curY-pageY;
 							var waitX=20;
 							var waitY=10;
-							var move;
 							if(Math.abs(newY)>waitY){
-								wait=0;
 								if(newY>0 && parent.opts.eventsSettings.yDirection!='up') {
 									newY-=waitY*2;
 									parent.opts.eventsSettings.yDirection='down';
@@ -266,35 +293,34 @@ by danyagrohman@gmail.com
 									curY+=parent.getItem(parent.opts.currentIndex).scrollTop();
 								}
 								parent.opts.busy=true;
-								parent.getItem(parent.opts.currentIndex).scrollTop(newY+wait);
+								parent.getItem(parent.opts.currentIndex).scrollTop(newY);
+								parent.opts.eventsSettings.moved=newY;
 								parent.opts.debug && $('<div>').html('going '+parent.opts.eventsSettings.yDirection).prependTo(parent.opts.debug);
 								newX=0;
 							} else
 							if(Math.abs(newX)>waitX){
-								if(newX<0) waitX-=waitX*2;
-								move = newX-waitX;
-								parent.opts.debug && $('<div>').html('move: '+move+'px').prependTo(parent.opts.debug);
-								parent.getItemsContainer().css('left', move+'px')
-								newY=0;
+								if(newX<0) waitX=-waitX;
+								parent.opts.eventsSettings.moved = newX-waitX;
+								parent.opts.debug && $('<div>').html('move: '+parent.opts.eventsSettings.moved+'px').prependTo(parent.opts.debug);
+								parent.getItemsContainer().css('left', parent.opts.eventsSettings.moved+'px')
 							} else {
 								newX=0;
 								newY=0;
+								parent.opts.eventsSettings.moved=0;
 							}
-
 						}
 
 					}
 					else if (parent.opts.eventsSettings.lastXYById[pointerId] && theEvtObj.type.match(/(up|end|cancel)$/i)) {
 						// clause handles up/end/cancel
 						parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
-						if(newY!=0){
-							parent.opts.eventsSettings.yDirection=null;
-							parent.opts.busy=false;
-							newY=0;
-						}
+                                                if(newY!=0 && newY!==undefined){
+                                                        parent.opts.eventsSettings.yDirection=null;
+                                                        parent.opts.busy=false;
+                                                }
 
 
-						// handle swipe while busy==false
+						// handle swipe while busy!=false
 						var interval = setInterval(function(){
 							if (parent.opts.busy==false) {
 								clearInterval(interval);
@@ -305,7 +331,6 @@ by danyagrohman@gmail.com
 								parent.goToNext();
 							}
 							newX=0;
-
 						}, 10)
 						// delete last page positions for this pointer
 						delete parent.opts.eventsSettings.lastXYById[pointerId];
@@ -317,20 +342,7 @@ by danyagrohman@gmail.com
 							target.msReleasePointerCapture(pointerId);
 						else if (theEvtObj.type == "mouseup" && parent.NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
 
-				// IE10's implementation in the Windows Developer Preview requires doing all of this
-				// Not all of these methods remain in the Windows Consumer Preview, hence the tests for method existence.
-							if(newX>0){
-								if (theEvtObj.preventDefault) {
-									theEvtObj.preventDefault();
-								}
-								if (theEvtObj.preventManipulation) {
-									theEvtObj.preventManipulation();
-								}
 
-								if (theEvtObj.preventMouseEvent){
-									theEvtObj.preventMouseEvent();
-								}
-							}
 
 							if (parent.opts.eventsSettings.useSetReleaseCapture)
 								target.releaseCapture();
@@ -339,6 +351,15 @@ by danyagrohman@gmail.com
 								document.removeEventListener("mouseup", touchMe, false);
 							}
 						}
+						setTimeout(function(){
+							$('.'+parent.opts.clickedElementClass).each(function(){
+								$(this).removeClass(parent.opts.clickedElementClass)
+								if(parent.opts.eventsSettings.moved==0 || parent.opts.eventsSettings.moved===undefined){
+									$(this).click();
+								}
+							});
+						}, 100)
+
 					}
 				}
 			}
@@ -418,7 +439,6 @@ by danyagrohman@gmail.com
 			}
 
 			this.opts.busy = true;
-			this.opts.yDirection=null;
 
 			if(this.opts.debug){
 				if(rightDirection){
@@ -454,8 +474,6 @@ by danyagrohman@gmail.com
 					})
 				}
 
-
-
 			}
 			if(rightDirection && rightItem){
 				rightItem.css({
@@ -469,10 +487,6 @@ by danyagrohman@gmail.com
 			};
 
 
-
-			leftItem && leftItem.show();
-			rightItem && rightItem.show();
-
 			var parent = this;
 			var onAnimationFinished = function() {
 				parent.opts.currentIndex = leftItemIndex;
@@ -480,6 +494,11 @@ by danyagrohman@gmail.com
 				preLeftItem && preLeftItem.show();
 				parent.$el.trigger(parent.opts.selectedItemChangedEventName);
 			};
+
+			leftItem && leftItem.show();
+			rightItem && rightItem.show();
+
+
 
 			leftItem && leftItem.animate(animationTarget, this.opts.animationDuration, this.opts.animationEasing, onAnimationFinished);
 			rightItem && rightItem.animate(animationTarget, this.opts.animationDuration, this.opts.animationEasing);
