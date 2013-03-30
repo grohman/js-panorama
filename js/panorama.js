@@ -354,9 +354,12 @@ by danyagrohman@gmail.com
 							parent.opts.eventsSettings.lastXYById[pointerId].y = pageY;
 							newX=pageX-curX;
 							newY=curY-pageY;
+							mNewX=Math.abs(newX);
+							mNewY=Math.abs(newY);
 							var waitX=30;
 							var waitY=30;
-							if(Math.abs(newY)>waitY){
+							if(mNewY>waitY && mNewX<waitX){
+
 								if(newY>0 && parent.opts.eventsSettings.yDirection!='up') {
 									newY-=waitY;
 									parent.opts.eventsSettings.yDirection='down';
@@ -374,7 +377,7 @@ by danyagrohman@gmail.com
 								parent.opts.debug && $('<div>').html('going '+parent.opts.eventsSettings.yDirection+': '+newY).prependTo(parent.opts.debug);
 								newX=0;
 							} else
-							if(Math.abs(newX)>waitX){
+							if(mNewX>waitX){
 								if(newX<0) waitX=-waitX;
 								parent.opts.eventsSettings.moved = newX-waitX;
 								parent.opts.debug && $('<div>').html('move: '+parent.opts.eventsSettings.moved+'px').prependTo(parent.opts.debug);
@@ -400,9 +403,6 @@ by danyagrohman@gmail.com
 						if (target.msReleasePointerCapture)
 							target.msReleasePointerCapture(pointerId);
 						else if (theEvtObj.type == "mouseup" && NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
-
-
-
 							if (parent.opts.eventsSettings.useSetReleaseCapture)
 								target.releaseCapture();
 							else {
