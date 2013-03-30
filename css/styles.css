@@ -1,8 +1,9 @@
 body { margin:0px; padding:0px; overflow:hidden; }
-.ui-panorama { overflow: hidden; height:auto; -ms-content-zooming: none; }
+.ui-panorama, .ui-panorama-click-wrapper, body { overflow: hidden; -ms-content-zooming: none; -ms-touch-action: none; }
 .ui-panorama h1 { margin-top:0px; }
 .ui-panorama .ui-panorama-item h2,
 .ui-panorama h1 {overflow:hidden; white-space:nowrap; }
 .ui-panorama .ui-panorama-items {position:relative;}
 .ui-panorama .ui-panorama-items .ui-panorama-item { position:absolute; top:0; left:0; padding:10px; overflow-x:hidden; overflow-y:auto;}
 .ui-panorama-items { display:none; }
+.ui-loader { display:none; }

@@ -26,8 +26,12 @@ by danyagrohman@gmail.com
 		};
 
 		if($(el).data('panorama')){
-			return false;
+			return;
 		}
+
+		/* see you in hell, M$ */
+		$(el).css({'-ms-content-zooming': 'none','-ms-touch-action': 'none'})
+
 		//Extending options:
 		this.opts = $.extend({}, this.defaults, options);
 		this.opts = $.extend(this.opts, {
@@ -54,21 +58,23 @@ by danyagrohman@gmail.com
 			}).appendTo('body')
 		})
 
-		if(parseInt(this.opts.backgroundAnimationStep)==0) this.opts.backgroundAnimationStep = Math.round(100/$(el).find(this.opts.itemSelector).length);
-		if(parseInt(this.opts.totalNumberOfItems)==0) this.opts.totalNumberOfItems = $(el).find(this.opts.itemSelector).length;
+		if(parseInt(this.opts.totalNumberOfItems)==0) this.opts.totalNumberOfItems = $(el).children(this.opts.itemsContainerSelector).children(this.opts.itemSelector).length;
+		if(parseInt(this.opts.backgroundAnimationStep)==0) this.opts.backgroundAnimationStep = Math.round(100/this.opts.totalNumberOfItems);
+
 
 		//Privates:
 		this.$el = $(el);
 
 		$('<div>').addClass(this.opts.clickedWrapperClass).css({
-			'zIndex':999,
+			'zIndex':9999,
 			'opacity':'0',
 			'width':$(window).width(),
 			'height':$(window).height(),
 			'position':'fixed',
 			'left':'0px',
 			'top':'0px',
-			'background':'black'
+			'background':'black',
+			'overflow':'scroll'
 		}).prependTo(this.$el);
 
 		if(this.opts.debug){
@@ -136,6 +142,74 @@ by danyagrohman@gmail.com
 		/* gestures */
 		this.setEvents = function(target){
 			var parent = this;
+
+
+
+			function ComputeDocumentToElementDelta(theElement){
+				// we send target-relative coordinates to the draw functions
+				// this calculates the delta needed to convert pageX/Y to offsetX/Y because offsetX/Y don't exist in the TouchEvent object or in Firefox's MouseEvent object
+				var elementLeft = 0;
+				var elementTop = 0;
+
+				for (var offsetElement = theElement; offsetElement != null; offsetElement = offsetElement.offsetParent) {
+					// the following is a major hack for versions of IE less than 8 to avoid an apparent problem on the IEBlog with double-counting the offsets
+					// this may not be a general solution to IE7's problem with offsetLeft/offsetParent
+					if (navigator.userAgent.match(/\bMSIE\b/) && (!document.documentMode || document.documentMode < 8) && offsetElement.currentStyle.position == "relative" && offsetElement.offsetParent && offsetElement.offsetParent.currentStyle.position == "relative" && offsetElement.offsetLeft == offsetElement.offsetParent.offsetLeft) {
+						// add only the top
+						elementTop += offsetElement.offsetTop;
+					}
+					else {
+						elementLeft += offsetElement.offsetLeft;
+						elementTop += offsetElement.offsetTop;
+					}
+				}
+
+				return {
+					x: elementLeft,
+					y: elementTop
+				};
+			}
+			function NumberOfKeys(theObject){
+				if (Object.keys)
+					return Object.keys(theObject).length;
+
+				var n = 0;
+				for (var key in theObject) {
+					++n;
+				}
+
+				return n;
+			}
+
+			function EnsurePageXY(eventObj){
+				// function needed because IE versions before 9 did not define pageX/Y in the MouseEvent object
+				if (typeof eventObj.pageX == 'undefined') {
+					// initialize assuming our source element is our target
+					eventObj.pageX = eventObj.offsetX + documentToTargetDelta.x;
+					eventObj.pageY = eventObj.offsetY + documentToTargetDelta.y;
+
+					if (eventObj.srcElement.offsetParent == target && document.documentMode && document.documentMode == 8 && eventObj.type == "mousedown") {
+						// source element is a child piece of VML, we're in IE8, and we've not called setCapture yet - add the origin of the source element
+						eventObj.pageX += eventObj.srcElement.offsetLeft;
+						eventObj.pageY += eventObj.srcElement.offsetTop;
+					}
+					else if (eventObj.srcElement != target && !document.documentMode || document.documentMode < 8) {
+						// source element isn't the target (most likely it's a child piece of VML) and we're in a version of IE before IE8 -
+						// the offsetX/Y values are unpredictable so use the clientX/Y values and adjust by the scroll offsets of its parents
+						// to get the document-relative coordinates (the same as pageX/Y)
+						var sx = -2, sy = -2; // adjust for old IE's 2-pixel border
+						for (var scrollElement = eventObj.srcElement; scrollElement != null; scrollElement = scrollElement.parentNode) {
+							sx += scrollElement.scrollLeft ? scrollElement.scrollLeft : 0;
+							sy += scrollElement.scrollTop ? scrollElement.scrollTop : 0;
+						}
+
+						eventObj.pageX = eventObj.clientX + sx;
+						eventObj.pageY = eventObj.clientY + sy;
+					}
+				}
+			}
+
+
 			if (window.navigator.msPointerEnabled) {
 				// Microsoft pointer model
 				target.addEventListener("MSPointerDown", touchMe, false);
@@ -179,7 +253,7 @@ by danyagrohman@gmail.com
 
 			} else if (target.attachEvent && target.setCapture) {
 				// legacy IE mode - mouse with capture
-				opts.eventsSettings.useSetReleaseCapture = true;
+				parent.opts.eventsSettings.useSetReleaseCapture = true;
 				target.attachEvent("onmousedown", function () {
 					touchMe(window.event);
 					window.event.returnValue = false;
@@ -202,9 +276,10 @@ by danyagrohman@gmail.com
 				parent.opts.debug && $('<div>').html('Unexpected combination of supported features').prependTo(parent.opts.debug);
 				return false;
 			}
+
 			var curX, newX, curY, newY;
 			function touchMe(theEvtObj){
-				if (theEvtObj.type == "mousemove" && parent.NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
+				if (theEvtObj.type == "mousemove" && NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
 					return;
 				}
 
@@ -224,7 +299,7 @@ by danyagrohman@gmail.com
 					var pointerId = (typeof pointerObj.identifier != 'undefined') ? pointerObj.identifier : (typeof pointerObj.pointerId != 'undefined') ? pointerObj.pointerId : 1;
 
 					// use the pageX/Y coordinates to compute target-relative coordinates when we have them (in ie < 9, we need to do a little work to put them there)
-					parent.EnsurePageXY(pointerObj);
+					EnsurePageXY(pointerObj);
 					var pageX = pointerObj.pageX;
 					var pageY = pointerObj.pageY;
 					if (theEvtObj.type.match(/(start|down)$/i)) {
@@ -233,13 +308,13 @@ by danyagrohman@gmail.com
 						// clause for processing MSPointerDown, touchstart, and mousedown
 
 						// refresh the document-to-target delta on start in case the target has moved relative to document
-						documentToTargetDelta = parent.ComputeDocumentToElementDelta(target);
+						documentToTargetDelta = ComputeDocumentToElementDelta(target);
 
 						// protect against failing to get an up or end on this pointerId
 						if (parent.opts.eventsSettings.lastXYById[pointerId]) {
 							delete parent.opts.eventsSettings.lastXYById[pointerId];
 							parent.opts.debug && $('<div>').html('force end').prependTo(parent.opts.debug);
-							parent.getItemsContainer().animate({
+							parent.getItemsContainer().css({
 								'left':'0px'
 							})
 							return;
@@ -261,7 +336,7 @@ by danyagrohman@gmail.com
 						// nothing is required for the iOS touch model because capture is implied on touchstart
 						if (target.msSetPointerCapture)
 							target.msSetPointerCapture(pointerId);
-						else if (theEvtObj.type == "mousedown" && parent.NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 1) {
+						else if (theEvtObj.type == "mousedown" && NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 1) {
 							if (parent.opts.eventsSettings.useSetReleaseCapture)
 								target.setCapture(true);
 							else {
@@ -279,13 +354,14 @@ by danyagrohman@gmail.com
 							parent.opts.eventsSettings.lastXYById[pointerId].y = pageY;
 							newX=pageX-curX;
 							newY=curY-pageY;
-							var waitX=20;
-							var waitY=10;
+							var waitX=30;
+							var waitY=30;
 							if(Math.abs(newY)>waitY){
 								if(newY>0 && parent.opts.eventsSettings.yDirection!='up') {
-									newY-=waitY*2;
+									newY-=waitY;
 									parent.opts.eventsSettings.yDirection='down';
 								} else {
+									newY+=waitY;
 									parent.opts.eventsSettings.yDirection='up';
 								}
 								if(parent.opts.busy==false){
@@ -295,14 +371,16 @@ by danyagrohman@gmail.com
 								parent.opts.busy=true;
 								parent.getItem(parent.opts.currentIndex).scrollTop(newY);
 								parent.opts.eventsSettings.moved=newY;
-								parent.opts.debug && $('<div>').html('going '+parent.opts.eventsSettings.yDirection).prependTo(parent.opts.debug);
+								parent.opts.debug && $('<div>').html('going '+parent.opts.eventsSettings.yDirection+': '+newY).prependTo(parent.opts.debug);
 								newX=0;
 							} else
 							if(Math.abs(newX)>waitX){
 								if(newX<0) waitX=-waitX;
 								parent.opts.eventsSettings.moved = newX-waitX;
 								parent.opts.debug && $('<div>').html('move: '+parent.opts.eventsSettings.moved+'px').prependTo(parent.opts.debug);
-								parent.getItemsContainer().css('left', parent.opts.eventsSettings.moved+'px')
+								if (parent.opts.busy==false) {
+									parent.getItemsContainer().css({'left':parent.opts.eventsSettings.moved+'px'})
+								}
 							} else {
 								newX=0;
 								newY=0;
@@ -313,25 +391,6 @@ by danyagrohman@gmail.com
 					}
 					else if (parent.opts.eventsSettings.lastXYById[pointerId] && theEvtObj.type.match(/(up|end|cancel)$/i)) {
 						// clause handles up/end/cancel
-						parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
-                                                if(newY!=0 && newY!==undefined){
-                                                        parent.opts.eventsSettings.yDirection=null;
-                                                        parent.opts.busy=false;
-                                                }
-
-
-						// handle swipe while busy!=false
-						var interval = setInterval(function(){
-							if (parent.opts.busy==false) {
-								clearInterval(interval);
-							}
-							if(newX>0){
-								parent.goToPrevious();
-							} else if(newX<0) {
-								parent.goToNext();
-							}
-							newX=0;
-						}, 10)
 						// delete last page positions for this pointer
 						delete parent.opts.eventsSettings.lastXYById[pointerId];
 
@@ -340,7 +399,7 @@ by danyagrohman@gmail.com
 						// nothing is required for the iOS touch model because capture is implied on touchstart
 						if (target.msReleasePointerCapture)
 							target.msReleasePointerCapture(pointerId);
-						else if (theEvtObj.type == "mouseup" && parent.NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
+						else if (theEvtObj.type == "mouseup" && NumberOfKeys(parent.opts.eventsSettings.lastXYById) == 0) {
 
 
 
@@ -351,6 +410,27 @@ by danyagrohman@gmail.com
 								document.removeEventListener("mouseup", touchMe, false);
 							}
 						}
+
+						parent.opts.debug && $('<div>').html('end').prependTo(parent.opts.debug);
+
+						if(parent.opts.eventsSettings.yDirection!=null){
+							parent.opts.eventsSettings.yDirection=null;
+							parent.opts.busy=false;
+						}
+						// handle swipe while busy!=false
+						var interval = setInterval(function(){
+							if (parent.opts.busy==false) {
+								clearInterval(interval);
+								if(newX>0){
+									parent.goToPrevious();
+									newX=0;
+								} else if(newX<0) {
+									parent.goToNext();
+									newX=0;
+								}
+							}
+						}, 10);
+
 						setTimeout(function(){
 							$('.'+parent.opts.clickedElementClass).each(function(){
 								$(this).removeClass(parent.opts.clickedElementClass)
@@ -358,6 +438,9 @@ by danyagrohman@gmail.com
 									$(this).click();
 								}
 							});
+							if(parent.opts.eventsSettings.yDirection==null){
+								parent.opts.eventsSettings.moved=0;
+							}
 						}, 100)
 
 					}
@@ -369,69 +452,7 @@ by danyagrohman@gmail.com
 			return true;
 		};
 
-		this.EnsurePageXY= function(eventObj){
-			// function needed because IE versions before 9 did not define pageX/Y in the MouseEvent object
-			if (typeof eventObj.pageX == 'undefined') {
-				// initialize assuming our source element is our target
-				eventObj.pageX = eventObj.offsetX + documentToTargetDelta.x;
-				eventObj.pageY = eventObj.offsetY + documentToTargetDelta.y;
 
-				if (eventObj.srcElement.offsetParent == target && document.documentMode && document.documentMode == 8 && eventObj.type == "mousedown") {
-					// source element is a child piece of VML, we're in IE8, and we've not called setCapture yet - add the origin of the source element
-					eventObj.pageX += eventObj.srcElement.offsetLeft;
-					eventObj.pageY += eventObj.srcElement.offsetTop;
-				}
-				else if (eventObj.srcElement != target && !document.documentMode || document.documentMode < 8) {
-					// source element isn't the target (most likely it's a child piece of VML) and we're in a version of IE before IE8 -
-					// the offsetX/Y values are unpredictable so use the clientX/Y values and adjust by the scroll offsets of its parents
-					// to get the document-relative coordinates (the same as pageX/Y)
-					var sx = -2, sy = -2; // adjust for old IE's 2-pixel border
-					for (var scrollElement = eventObj.srcElement; scrollElement != null; scrollElement = scrollElement.parentNode) {
-						sx += scrollElement.scrollLeft ? scrollElement.scrollLeft : 0;
-						sy += scrollElement.scrollTop ? scrollElement.scrollTop : 0;
-					}
-
-					eventObj.pageX = eventObj.clientX + sx;
-					eventObj.pageY = eventObj.clientY + sy;
-				}
-			}
-		}
-
-		this.NumberOfKeys = function(theObject){
-			if (Object.keys)
-				return Object.keys(theObject).length;
-
-			var n = 0;
-			for (var key in theObject) {
-				++n;
-			}
-
-			return n;
-		}
-		this.ComputeDocumentToElementDelta = function(theElement){
-			// we send target-relative coordinates to the draw functions
-			// this calculates the delta needed to convert pageX/Y to offsetX/Y because offsetX/Y don't exist in the TouchEvent object or in Firefox's MouseEvent object
-			var elementLeft = 0;
-			var elementTop = 0;
-
-			for (var offsetElement = theElement; offsetElement != null; offsetElement = offsetElement.offsetParent) {
-				// the following is a major hack for versions of IE less than 8 to avoid an apparent problem on the IEBlog with double-counting the offsets
-				// this may not be a general solution to IE7's problem with offsetLeft/offsetParent
-				if (navigator.userAgent.match(/\bMSIE\b/) && (!document.documentMode || document.documentMode < 8) && offsetElement.currentStyle.position == "relative" && offsetElement.offsetParent && offsetElement.offsetParent.currentStyle.position == "relative" && offsetElement.offsetLeft == offsetElement.offsetParent.offsetLeft) {
-					// add only the top
-					elementTop += offsetElement.offsetTop;
-				}
-				else {
-					elementLeft += offsetElement.offsetLeft;
-					elementTop += offsetElement.offsetTop;
-				}
-			}
-
-			return {
-				x: elementLeft,
-				y: elementTop
-			};
-		}
 
 		this.changeItem = function(rightDirection){
 			if (this.opts.busy) {
@@ -490,8 +511,9 @@ by danyagrohman@gmail.com
 			var parent = this;
 			var onAnimationFinished = function() {
 				parent.opts.currentIndex = leftItemIndex;
-				parent.opts.busy = false;
 				preLeftItem && preLeftItem.show();
+				parent.opts.busy = false;
+				parent.opts.eventsSettings.lastXYById={};
 				parent.$el.trigger(parent.opts.selectedItemChangedEventName);
 			};
 
