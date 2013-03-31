@@ -10,6 +10,7 @@ by danyagrohman@gmail.com
 		this.defaults = {
 			debug: false,
 			clickedWrapperClass: 'ui-panorama-click-wrapper',
+			clickedWrapperZindex: 2,
 			clickedElementClass: 'ui-panorama-clicked',
 			animationDuration: 500,
 			animationEasing: 'easeOutExpo',
@@ -66,7 +67,7 @@ by danyagrohman@gmail.com
 		this.$el = $(el);
 
 		$('<div>').addClass(this.opts.clickedWrapperClass).css({
-			'zIndex':9999,
+			'zIndex':this.opts.clickedWrapperZindex,
 			'opacity':'0',
 			'width':$(window).width(),
 			'height':$(window).height(),
