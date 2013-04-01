@@ -20,6 +20,7 @@ by danyagrohman@gmail.com
 			backgroundAnimationStep: 0, // for dynamic value not specify this option
 			titleAnimationStep: 15,
 			itemsGapPercentage: 10,
+			backPointPx:150,
 			itemsLeftMarginPercent: 0,
 			totalNumberOfItems: 0, // for dynamic value not specify this option
 			controlInitializedEventName: 'controlInitialized',
@@ -423,10 +424,18 @@ by danyagrohman@gmail.com
 							if (parent.opts.busy==false) {
 								clearInterval(interval);
 								if(newX>0){
-									parent.goToPrevious();
+									if(newX<parent.opts.backPointPx){
+										parent.getItemsContainer().animate({'left':'0px'})
+									} else {
+										parent.goToPrevious();
+									}
 									newX=0;
 								} else if(newX<0) {
-									parent.goToNext();
+									if(newX>-parent.opts.backPointPx){
+										parent.getItemsContainer().animate({'left':'0px'})
+									} else {
+										parent.goToNext();
+									}
 									newX=0;
 								}
 							}

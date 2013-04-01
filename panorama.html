@@ -68,9 +68,10 @@
 					titleSelector: 'h1',
 					itemsContainerSelector: '.ui-panorama-items',
 					itemSelector: '.ui-panorama-item',
-					itemsGapPercentage: 10,
-					itemsLeftMarginPercent: 0,
+					itemsGapPercentage: 10, /* resize 'screens' */
+					itemsLeftMarginPercent: 0, /* add margin-left to every screen */
 					totalNumberOfItems: 5,
+					backPointPx: 150, /* prevent swipe when user moved screen less than 150 px */
 					controlInitializedEventName: 'controlInitialized',
 					selectedItemChangedEventName: 'selectedItemChanged'
 				});
