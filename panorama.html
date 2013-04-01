@@ -46,7 +46,7 @@
 		</div>
 		<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 		<script type="text/javascript" src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
-		<script type="text/javascript" src="js/panorama.js"></script>
+		<script type="text/javascript" src="js/panorama.min.js"></script>
 		<script type="text/javascript">
 			(function($){
 				$.fn.disableSelection = function() {
@@ -71,7 +71,9 @@
 					itemsGapPercentage: 10, /* resize 'screens' */
 					itemsLeftMarginPercent: 0, /* add margin-left to every screen */
 					totalNumberOfItems: 5,
-					backPointPx: 150, /* prevent swipe when user moved screen less than 150 px */
+					waitXpercentage: 5, /* prevent any horiaontal move when user moved screen less than 5% */
+					waitYpercentage:3, /* prevent any vertical move when user moved screen less than 3% */
+					backPointPercentage: 30, /* prevent swipe when user moved screen less than 30% */
 					controlInitializedEventName: 'controlInitialized',
 					selectedItemChangedEventName: 'selectedItemChanged'
 				});

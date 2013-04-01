@@ -17,12 +17,14 @@ by danyagrohman@gmail.com
 			titleSelector: 'h1',
 			itemsContainerSelector: '.ui-panorama-items',
 			itemSelector: '.ui-panorama-item',
-			backgroundAnimationStep: 0, // for dynamic value not specify this option
+			backgroundAnimationStep: 0,
 			titleAnimationStep: 15,
 			itemsGapPercentage: 10,
-			backPointPx:150,
+			waitXpercentage:5,
+			waitYpercentage:5,
+			backPointPercentage:10,
 			itemsLeftMarginPercent: 0,
-			totalNumberOfItems: 0, // for dynamic value not specify this option
+			totalNumberOfItems: 0,
 			controlInitializedEventName: 'controlInitialized',
 			selectedItemChangedEventName: 'selectedItemChanged'
 		};
@@ -59,7 +61,10 @@ by danyagrohman@gmail.com
 				'color':'black'
 			}).appendTo('body')
 		})
-
+		var screenPc = $(window).width()/100;
+		this.opts.waitXpercentage = Math.round(screenPc*this.opts.waitXpercentage);
+		this.opts.waitYpercentage = Math.round(screenPc*this.opts.waitYpercentage);
+		this.opts.backPointPercentage = Math.round(screenPc*this.opts.backPointPercentage);
 		if(parseInt(this.opts.totalNumberOfItems)==0) this.opts.totalNumberOfItems = $(el).children(this.opts.itemsContainerSelector).children(this.opts.itemSelector).length;
 		if(parseInt(this.opts.backgroundAnimationStep)==0) this.opts.backgroundAnimationStep = Math.round(100/this.opts.totalNumberOfItems);
 
@@ -358,8 +363,8 @@ by danyagrohman@gmail.com
 							newY=curY-pageY;
 							mNewX=Math.abs(newX);
 							mNewY=Math.abs(newY);
-							var waitX=30;
-							var waitY=30;
+							var waitX=parent.opts.waitXpercentage
+							var waitY=parent.opts.waitYpercentage;
 							if(mNewY>waitY && mNewX<waitX){
 
 								if(newY>0 && parent.opts.eventsSettings.yDirection!='up') {
@@ -424,14 +429,14 @@ by danyagrohman@gmail.com
 							if (parent.opts.busy==false) {
 								clearInterval(interval);
 								if(newX>0){
-									if(newX<parent.opts.backPointPx){
+									if(newX<parent.opts.backPointPercentage){
 										parent.getItemsContainer().animate({'left':'0px'}, parent.opts.animationDuration, parent.opts.animationEasing);
 									} else {
 										parent.goToPrevious();
 									}
 									newX=0;
 								} else if(newX<0) {
-									if(newX>-parent.opts.backPointPx){
+									if(newX>-parent.opts.backPointPercentage){
 										parent.getItemsContainer().animate({'left':'0px'}, parent.opts.animationDuration, parent.opts.animationEasing);
 									} else {
 										parent.goToNext();
