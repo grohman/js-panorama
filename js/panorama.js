@@ -425,14 +425,14 @@ by danyagrohman@gmail.com
 								clearInterval(interval);
 								if(newX>0){
 									if(newX<parent.opts.backPointPx){
-										parent.getItemsContainer().animate({'left':'0px'})
+										parent.getItemsContainer().animate({'left':'0px'}, parent.opts.animationDuration, parent.opts.animationEasing);
 									} else {
 										parent.goToPrevious();
 									}
 									newX=0;
 								} else if(newX<0) {
 									if(newX>-parent.opts.backPointPx){
-										parent.getItemsContainer().animate({'left':'0px'})
+										parent.getItemsContainer().animate({'left':'0px'}, parent.opts.animationDuration, parent.opts.animationEasing);
 									} else {
 										parent.goToNext();
 									}
