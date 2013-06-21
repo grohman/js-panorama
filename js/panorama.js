@@ -570,7 +570,7 @@ by danyagrohman@gmail.com
 			return false;
 		},
 		prepare: function(controller){
-			var myHeight = $.mobile!==undefined?controller.parent().height()+1:$(window).height();
+			var myHeight = $(window).height();
 
 			var unmargin = this.getItemsContainer().position().top;
 			var itemsHeight = myHeight - unmargin;
