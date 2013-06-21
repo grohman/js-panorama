@@ -6,6 +6,6 @@ jquery plugin for panorama control (like in metro ui)
 Based on jq-metro (http://jqmetro.com).
 Works on all mobile devices. Including windows phone 8.
 
-Panorama example : http://grohman.koding.com/js-panorama/panorama.html
+Panorama example : http://grohman.kd.io/js-panorama/panorama.html
 
-Pivot example: http://grohman.koding.com/js-panorama/pivot.html
+Pivot example: http://grohman.kd.io/js-panorama/pivot.html
