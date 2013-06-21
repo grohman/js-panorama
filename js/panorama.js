@@ -1,5 +1,5 @@
 /*
-$.panorama version 1.0
+$.panorama version 1.0.1
 by danyagrohman@gmail.com
 */
 
@@ -570,8 +570,7 @@ by danyagrohman@gmail.com
 			return false;
 		},
 		prepare: function(controller){
-			/* i'm not sure why this happening, but sometimes there's a 1px lack at bottom of the page */
-			var myHeight = controller.parent().height()+1;
+			var myHeight = $.mobile!==undefined?controller.parent().height()+1:$(window).height();
 
 			var unmargin = this.getItemsContainer().position().top;
 			var itemsHeight = myHeight - unmargin;
